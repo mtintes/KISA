@@ -28,10 +28,11 @@ func inputsContainer(inputPins binding.UntypedList) *fyne.Container {
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {
 			id := uuid.New().String()
 
-			inputPins.Append(InputPin{Topic: fmt.Sprintf("sensor-%s", id[:4])})
+			inputPins.Append(InputPin{Topic: fmt.Sprintf("topic-%s", id[:4])})
+
 		}),
 	)
-	labelbar := container.New(layout.NewGridLayout(3), toolbar, widget.NewLabel(""), widget.NewLabel("topic"), widget.NewLabel("pinNumber"))
+	labelbar := container.New(layout.NewGridLayout(2), toolbar, widget.NewLabel(""), widget.NewLabel("topic"), widget.NewLabel("pinNumber"))
 
 	border := container.NewBorder(labelbar, nil, nil, nil, widget.NewListWithData(inputPins,
 		func() fyne.CanvasObject {

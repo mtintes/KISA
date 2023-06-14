@@ -32,11 +32,18 @@ func configureBorder(myApp fyne.App) *fyne.Container {
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {
 			id := uuid.New().String()
 
-			inputPicos.Append(InputPico{Name: fmt.Sprintf("pico-%s", id[:4]), Inputs: []InputPin{
-				InputPin{Topic: id[:4]},
-			}})
-			mainSetup.InputPicos = append(mainSetup.InputPicos, InputPico{})
-			log.Println(inputPicos.Length())
+			newPico := InputPico{Name: fmt.Sprintf("pico-%s", id[:4]), Inputs: []InputPin{
+				InputPin{Topic: fmt.Sprintf("topic-%s", id[:4])},
+			}}
+			inputPicos.Append(newPico)
+			mainSetup.InputPicos = append(mainSetup.InputPicos, newPico)
+			for _, pico := range mainSetup.InputPicos {
+				log.Println(pico.Name)
+				for _, pin := range pico.Inputs {
+					log.Println("topic: ", pin.Topic)
+					log.Println("pin number: ", pin.PinNumber)
+				}
+			}
 		}),
 	)
 
@@ -49,6 +56,11 @@ func configureBorder(myApp fyne.App) *fyne.Container {
 
 			input := v.(InputPico)
 			inputPins := binding.NewUntypedList()
+			inputPins.AddListener(binding.NewDataListener(func() {
+				newUpdate, _ := inputPins.Get()
+				input.Inputs = interfaceToInputPin(newUpdate)
+				//log.Println(input.Inputs)
+			}))
 
 			for _, pin := range input.Inputs {
 				inputPins.Append(pin)

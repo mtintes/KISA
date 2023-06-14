@@ -1,0 +1,1 @@
+https://github.com/PacktPublishing/Building-Cross-Platform-GUI-Applications-with-Fyne/blob/master/Chapter05/data.go

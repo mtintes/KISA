@@ -23,3 +23,13 @@ func NewInputPins(topic string, pin int) InputPin {
 		PinNumber: pin,
 	}
 }
+
+func interfaceToInputPin(in []interface{}) []InputPin {
+	var response []InputPin
+
+	for _, object := range in {
+		response = append(response, object.(InputPin))
+	}
+
+	return response
+}
