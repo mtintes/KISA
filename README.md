@@ -1,4 +1,4 @@
-# KISA
+# KISA - WIP and still terrible.
 Keep It Simple Animatronics
 
 This project is intended for beginners to animatronics so they can build, program, record, and playback an animatronic project. It is currently very much a work in project and does not do much.
