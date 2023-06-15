@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -87,18 +88,9 @@ func (a *ControllerApp) makeUI() fyne.CanvasObject {
 				label := box.Objects[0].(*widget.Label)
 				label.SetText(fmt.Sprintf("%d", Pin.PinNumber))
 				topic := box.Objects[1].(*widget.Entry)
-				topic.SetText(Pin.Topic)
+				bindTopic := binding.BindString(&Pin.Topic)
+				topic.Bind(bindTopic)
 
-				topic.OnChanged = func(s string) {
-
-					if a.current.Pins[lii].Topic != s {
-						log.Println(a.current.Pins)
-						log.Printf("index: %d, Current: %s, Next: %s", lii, a.current.Pins[lii].Topic, s)
-						// 	a.current.Pins[lii].Topic = s
-						// 	a.Pins.Refresh()
-					}
-
-				}
 			}
 
 		}))
@@ -140,7 +132,7 @@ func (a *ControllerApp) setController(t *Controller) {
 		return a.current.Pins[i].PinNumber < a.current.Pins[j].PinNumber
 	})
 
-	log.Println(t)
+	log.Println("t", t)
 
 	a.Name.SetText(t.Name)
 	a.Id.SetText(t.Id)

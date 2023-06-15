@@ -29,9 +29,7 @@ func (l *ControllerList) add(t *Controller) {
 
 func (l *ControllerList) all() []*Controller {
 	var items []*Controller
-	for _, Controller := range l.Controllers {
-		items = append(items, Controller)
-	}
+	items = append(items, l.Controllers...)
 
 	return items
 }
