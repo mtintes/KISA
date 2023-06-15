@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"sort"
 
 	"fyne.io/fyne/v2"
@@ -79,15 +77,21 @@ func (a *ControllerApp) makeUI() fyne.CanvasObject {
 			return 1
 		},
 		func() fyne.CanvasObject {
-			pins := container.NewGridWithColumns(2, widget.NewLabel("Pin x"), widget.NewEntry())
+			pins := container.NewGridWithColumns(2, widget.NewEntry(), widget.NewEntry())
 			return pins
 		}, func(lii widget.ListItemID, co fyne.CanvasObject) {
 			if a.current != nil {
 				Pin := a.current.Pins[lii]
 				box := co.(*fyne.Container)
-				label := box.Objects[0].(*widget.Label)
-				label.SetText(fmt.Sprintf("%d", Pin.PinNumber))
+				pinNumber := box.Objects[0].(*widget.Entry)
+				bindPin := binding.BindInt(&Pin.PinNumber)
+				bindPinToString := binding.IntToString(bindPin)
+				pinNumber.Bind(bindPinToString)
+				pinNumber.PlaceHolder = "pin #"
+
 				topic := box.Objects[1].(*widget.Entry)
+				topic.PlaceHolder = "topic_name"
+
 				bindTopic := binding.BindString(&Pin.Topic)
 				topic.Bind(bindTopic)
 
@@ -131,8 +135,6 @@ func (a *ControllerApp) setController(t *Controller) {
 	sort.Slice(a.current.Pins, func(i, j int) bool {
 		return a.current.Pins[i].PinNumber < a.current.Pins[j].PinNumber
 	})
-
-	log.Println("t", t)
 
 	a.Name.SetText(t.Name)
 	a.Id.SetText(t.Id)
