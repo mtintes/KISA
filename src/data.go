@@ -84,7 +84,7 @@ func (l *ControllerList) saveAs(w fyne.Window) {
 	}, w).Show()
 }
 
-func (l *ControllerList) load(w fyne.Window) {
+func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
 	dialog.NewFileOpen(func(u fyne.URIReadCloser, err error) {
 		l.filepath = u.URI().Path()
 		data, err := os.ReadFile(l.filepath)
@@ -96,17 +96,13 @@ func (l *ControllerList) load(w fyne.Window) {
 			panic(err)
 		}
 
+		w.SetContent(controllerApp.makeUI())
+		controllerApp.refreshData()
 	}, w).Show()
+
 }
 
 func dummyData() *ControllerList {
 	return &ControllerList{
-		Controllers: []*Controller{
-			{Name: "New Pico", Id: "1", Pins: []*Pin{
-				{PinNumber: 1},
-			}},
-			{Name: "New Pico", Id: "1", Pins: []*Pin{
-				{PinNumber: 1},
-			}},
-		}}
+		Controllers: []*Controller{}}
 }

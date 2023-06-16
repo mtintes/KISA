@@ -166,15 +166,17 @@ func (a *ControllerApp) setController(t *Controller) {
 func main() {
 	a := app.New()
 	w := a.NewWindow("Controller List")
-	w.Resize(fyne.Size{500, 500})
+	w.Resize(fyne.Size{700, 700})
 
 	data := dummyData()
 	Controllers := &ControllerApp{data: data, visible: data.all()}
 
+	content := Controllers.makeUI()
+
 	menu := fyne.NewMainMenu(
 		fyne.NewMenu("File",
 			fyne.NewMenuItem("Load", func() {
-				data.load(w)
+				data.load(w, Controllers)
 			}),
 			fyne.NewMenuItem("Save...", func() {
 				data.save(w)
@@ -188,9 +190,9 @@ func main() {
 		),
 	)
 
+	w.SetContent(content)
 	w.SetMainMenu(menu)
 
-	w.SetContent(Controllers.makeUI())
 	if len(data.all()) > 0 {
 		Controllers.setController(data.all()[0])
 	}
