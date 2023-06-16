@@ -69,35 +69,49 @@ func (a *ControllerApp) makeUI() fyne.CanvasObject {
 		}
 	})
 
-	a.Pins = container.New(layout.NewBorderLayout(nil, nil, nil, nil), widget.NewList(
-		func() int {
-			if a.current != nil {
-				return len(a.current.Pins)
-			}
-			return 1
-		},
-		func() fyne.CanvasObject {
-			pins := container.NewGridWithColumns(2, widget.NewEntry(), widget.NewEntry())
-			return pins
-		}, func(lii widget.ListItemID, co fyne.CanvasObject) {
-			if a.current != nil {
-				Pin := a.current.Pins[lii]
-				box := co.(*fyne.Container)
-				pinNumber := box.Objects[0].(*widget.Entry)
-				bindPin := binding.BindInt(&Pin.PinNumber)
-				bindPinToString := binding.IntToString(bindPin)
-				pinNumber.Bind(bindPinToString)
-				pinNumber.PlaceHolder = "pin #"
+	a.Pins = container.NewBorder(container.NewGridWithColumns(2, widget.NewButtonWithIcon("Add a pin", theme.ContentAddIcon(), func() {
+		if a.current == nil {
+			return
+		}
+		a.current.Pins = append(a.current.Pins, &Pin{PinNumber: 1})
+		a.Pins.Refresh()
 
-				topic := box.Objects[1].(*widget.Entry)
-				topic.PlaceHolder = "topic_name"
+	}),
+		widget.NewLabel(""),
+		widget.NewLabel("pin"),
+		widget.NewLabel("topic")),
+		nil,
+		nil,
+		nil,
+		container.New(layout.NewBorderLayout(nil, nil, nil, nil), widget.NewList(
+			func() int {
+				if a.current != nil {
+					return len(a.current.Pins)
+				}
+				return 1
+			},
+			func() fyne.CanvasObject {
+				pins := container.NewGridWithColumns(2, widget.NewEntry(), widget.NewEntry())
+				return pins
+			}, func(lii widget.ListItemID, co fyne.CanvasObject) {
+				if a.current != nil {
+					Pin := a.current.Pins[lii]
+					box := co.(*fyne.Container)
+					pinNumber := box.Objects[0].(*widget.Entry)
+					bindPin := binding.BindInt(&Pin.PinNumber)
+					bindPinToString := binding.IntToString(bindPin)
+					pinNumber.Bind(bindPinToString)
+					pinNumber.PlaceHolder = "pin #"
 
-				bindTopic := binding.BindString(&Pin.Topic)
-				topic.Bind(bindTopic)
+					topic := box.Objects[1].(*widget.Entry)
+					topic.PlaceHolder = "topic_name"
 
-			}
+					bindTopic := binding.BindString(&Pin.Topic)
+					topic.Bind(bindTopic)
 
-		}))
+				}
+
+			})))
 
 	form := widget.NewForm(
 		widget.NewFormItem("ID", a.Id),
@@ -120,6 +134,7 @@ func (a *ControllerApp) makeUI() fyne.CanvasObject {
 			a.refreshData()
 		}),
 	)
+
 	return container.NewBorder(toolbar, nil, a.Controllers, nil, details)
 }
 
@@ -155,6 +170,26 @@ func main() {
 
 	data := dummyData()
 	Controllers := &ControllerApp{data: data, visible: data.all()}
+
+	menu := fyne.NewMainMenu(
+		fyne.NewMenu("File",
+			fyne.NewMenuItem("Load", func() {
+				data.load(w)
+			}),
+			fyne.NewMenuItem("Save...", func() {
+				data.save(w)
+			}),
+			fyne.NewMenuItem("Save As...", func() {
+				data.saveAs(w)
+			}),
+			fyne.NewMenuItem("Quit", func() {
+				a.Quit()
+			}),
+		),
+	)
+
+	w.SetMainMenu(menu)
+
 	w.SetContent(Controllers.makeUI())
 	if len(data.all()) > 0 {
 		Controllers.setController(data.all()[0])
