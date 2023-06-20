@@ -96,7 +96,9 @@ func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
 			panic(err)
 		}
 
-		w.SetContent(controllerApp.makeUI())
+		tabs := getTabs(controllerApp, w)
+
+		w.SetContent(tabs)
 		controllerApp.refreshData()
 	}, w).Show()
 
