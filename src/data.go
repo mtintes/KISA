@@ -84,7 +84,7 @@ func (l *ControllerList) saveAs(w fyne.Window) {
 	}, w).Show()
 }
 
-func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
+func (l *ControllerList) load(w fyne.Window, apps *Apps, app fyne.App) {
 	dialog.NewFileOpen(func(u fyne.URIReadCloser, err error) {
 		l.filepath = u.URI().Path()
 		data, err := os.ReadFile(l.filepath)
@@ -96,10 +96,11 @@ func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
 			panic(err)
 		}
 
-		tabs := getTabs(controllerApp, w)
+		tabs := getTabs(apps, w, app)
 
 		w.SetContent(tabs)
-		controllerApp.refreshData()
+		apps.Controllers.refreshData()
+		apps.Calibrations.refreshData()
 	}, w).Show()
 
 }

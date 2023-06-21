@@ -4,8 +4,12 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 )
+
+type Apps struct {
+	Controllers  *ControllerApp
+	Calibrations *CalibrationApp
+}
 
 func main() {
 	a := app.New()
@@ -13,14 +17,18 @@ func main() {
 	w.Resize(fyne.Size{700, 700})
 
 	data := dummyData()
-	Controllers := &ControllerApp{data: data, visible: data.all()}
 
-	content := getTabs(Controllers, w)
+	apps := &Apps{
+		Controllers:  &ControllerApp{data: data, visible: data.all()},
+		Calibrations: &CalibrationApp{data: data, visible: data.all()},
+	}
+
+	content := getTabs(apps, w, a)
 
 	menu := fyne.NewMainMenu(
 		fyne.NewMenu("File",
 			fyne.NewMenuItem("Load", func() {
-				data.load(w, Controllers)
+				data.load(w, apps, a)
 			}),
 			fyne.NewMenuItem("Save...", func() {
 				data.save(w)
@@ -38,14 +46,16 @@ func main() {
 	w.SetMainMenu(menu)
 
 	if len(data.all()) > 0 {
-		Controllers.setController(data.all()[0])
+		apps.Controllers.setController(data.all()[0])
+		apps.Calibrations.setController(data.all()[0])
 	}
 	w.ShowAndRun()
 }
 
-func getTabs(Controllers *ControllerApp, w fyne.Window) *container.AppTabs {
+func getTabs(app *Apps, w fyne.Window, a fyne.App) *container.AppTabs {
 	return container.NewAppTabs(
-		container.NewTabItem("Controllers", Controllers.makeControllerUI(w)),
-		container.NewTabItem("Broker", widget.NewLabel("World")),
+		container.NewTabItem("Controllers", app.Controllers.makeControllerUI(w)),
+		container.NewTabItem("Broker", makeBrokerUI(w)),
+		container.NewTabItem("Calibration", app.Calibrations.makeCalibrationUI(w, a)),
 	)
 }
