@@ -107,5 +107,17 @@ func (l *ControllerList) load(w fyne.Window, apps *Apps, app fyne.App) {
 
 func dummyData() *ControllerList {
 	return &ControllerList{
-		Controllers: []*Controller{}}
+		Controllers: []*Controller{
+			{
+				Id:        "1",
+				Name:      "Controller 1",
+				Direction: input,
+				Pins: []*Pin{
+					{
+						Topic:     "a",
+						PinNumber: 1,
+					},
+				},
+			},
+		}}
 }

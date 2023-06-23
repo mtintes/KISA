@@ -14,24 +14,32 @@ import (
 func calibratePinUI(pin *Pin, a fyne.App) {
 	window := a.NewWindow("Calibrate Pin")
 	window.Resize(fyne.Size{300, 300})
+
+	var instructionsLabel *widget.Label
+	var startCalibrationButtonOn *widget.Button
+	var exitButton *widget.Button
+	client := connect("KISA Calibrator")
 	quit := make(chan bool)
-	startPositionButton := widget.NewButton("Start Position", func() {
 
-		go listen(pin.Topic, quit)
-
+	startCalibrationButtonOn = widget.NewButton("Start Calibration", func() {
+		go listen(client, pin.Topic, quit)
+		startCalibrationButtonOn.Hidden = true
+		exitButton.Hidden = false
 	})
 
-	middlePositionButton := widget.NewButton("Middle Position", func() {
+	exitButton = widget.NewButton("End Position Done", func() {
 		quit <- true
-		log.Print("Middle Position")
+		client.Unsubscribe("a")
+		client.Disconnect(250)
+		window.Close()
 	})
 
-	endPositionButton := widget.NewButton("End Position", func() {
-		log.Print("End Position")
-	})
+	exitButton.Hidden = true
 
-	window.SetContent(container.NewVBox(
-		startPositionButton, middlePositionButton, endPositionButton,
+	instructionsLabel = widget.NewLabel("Put your mechanism in a closed postion (minimum value) then click Start Calibration button to begin calibration")
+	instructionsLabel.Wrapping = fyne.TextWrapWord
+	window.SetContent(container.NewGridWithRows(2,
+		instructionsLabel, startCalibrationButtonOn, exitButton,
 	))
 	window.Show()
 }
@@ -56,17 +64,21 @@ func createClientOptions(clientId string) *mqtt.ClientOptions {
 	return opts
 }
 
-func listen(topic string, quit chan bool) {
-	client := connect("KISA Calibrator")
+func listen(client mqtt.Client, topic string, quit chan bool) {
 	client.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
 
+		//This has some garbage process that requires
+		//a transaction to come in before it will
+		//close the connection
 	OUT:
 		for {
 			select {
 			case <-quit:
+				//close(quit)
 				client.Unsubscribe("a")
-				client.Disconnect(10)
+				client.Disconnect(250)
+				break OUT
 			default:
 				break OUT
 			}
