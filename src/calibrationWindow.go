@@ -120,6 +120,7 @@ func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string) {
 		case <-quit:
 			client.Unsubscribe("a")
 			client.Disconnect(250)
+			return
 		default:
 		}
 	})
