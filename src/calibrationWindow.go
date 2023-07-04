@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -20,11 +21,24 @@ func calibratePinUI(pin *Pin, a fyne.App) {
 	var exitButton *widget.Button
 	client := connect("KISA Calibrator")
 	quit := make(chan bool)
+	phase := make(chan string)
+	currentPhaseToSend := 0
 
 	startCalibrationButtonOn = widget.NewButton("Start Calibration", func() {
-		go listen(client, pin.Topic, quit)
-		startCalibrationButtonOn.Hidden = true
-		exitButton.Hidden = false
+
+		switch currentPhaseToSend {
+		case 0:
+			go listen(client, pin, quit, phase)
+			phase <- "start"
+			currentPhaseToSend++
+		case 1:
+			instructionsLabel.SetText("Put your mechanism in a middle position then click 'Start Calibration' button")
+			phase <- "middle"
+			currentPhaseToSend++
+		case 2:
+			instructionsLabel.SetText("Put your mechanism in a fully open position (max value) then click 'Start Calibration' button")
+			phase <- "end"
+		}
 	})
 
 	exitButton = widget.NewButton("End Position Done", func() {
@@ -64,26 +78,77 @@ func createClientOptions(clientId string) *mqtt.ClientOptions {
 	return opts
 }
 
-func listen(client mqtt.Client, topic string, quit chan bool) {
-	client.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
-		fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
+func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string) {
+	biggest := 0.0
+	smallest := 0.0
+	count := 0
+	currentPhase := ""
 
-		//This has some garbage process that requires
-		//a transaction to come in before it will
-		//close the connection
-	OUT:
-		for {
-			select {
-			case <-quit:
-				//close(quit)
-				client.Unsubscribe("a")
-				client.Disconnect(250)
-				break OUT
-			default:
-				break OUT
+	client.Subscribe(pin.Topic, 0, func(client mqtt.Client, msg mqtt.Message) {
+		fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
+		value, _ := strconv.ParseFloat(string(msg.Payload()), 64)
+		if currentPhase == "start" {
+			if count < 10 {
+				fmt.Println("starting phase")
+				pin.MinValue = calculateMinAverageInput(biggest, smallest, value)
+				count++
+			} else {
+				fmt.Println("waiting for next phase")
+			}
+		} else if currentPhase == "middle" {
+			if count < 10 {
+				fmt.Println("middle phase")
+				pin.Direction = calculateDirectionInput(biggest, smallest, value)
+				count++
+			} else {
+				fmt.Println("waiting for next phase")
+			}
+		} else if currentPhase == "end" {
+			if count < 10 {
+				fmt.Println("end phase")
+				pin.MaxValue = calculateMaxAverageInput(biggest, smallest, value)
+				count++
+			} else {
+				fmt.Println("waiting for next phase")
 			}
 		}
 
+		select {
+		case newPhase := <-next:
+			currentPhase = newPhase
+			count = 0
+		case <-quit:
+			client.Unsubscribe("a")
+			client.Disconnect(250)
+		default:
+		}
 	})
 
+}
+
+func calculateMinAverageInput(biggest, smallest, value float64) float64 {
+
+	if value > biggest {
+		biggest = value
+	} else if value < smallest {
+		smallest = value
+	}
+
+	return 0.0
+}
+
+func calculateMaxAverageInput(biggest, smallest, value float64) float64 {
+
+	if value > biggest {
+		biggest = value
+	} else if value < smallest {
+		smallest = value
+	}
+
+	return 0.0
+}
+
+func calculateDirectionInput(biggest, smallest, value float64) string {
+
+	return "clockwise"
 }
