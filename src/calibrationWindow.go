@@ -28,15 +28,14 @@ func calibratePinUI(pin *Pin, a fyne.App) {
 
 		switch currentPhaseToSend {
 		case 0:
-			go listen(client, pin, quit, phase)
+			go listen(client, pin, quit, phase, startCalibrationButtonOn, instructionsLabel)
 			phase <- "start"
 			currentPhaseToSend++
+
 		case 1:
-			instructionsLabel.SetText("Put your mechanism in a middle position then click 'Start Calibration' button")
 			phase <- "middle"
 			currentPhaseToSend++
 		case 2:
-			instructionsLabel.SetText("Put your mechanism in a fully open position (max value) then click 'Start Calibration' button")
 			phase <- "end"
 		}
 	})
@@ -78,7 +77,7 @@ func createClientOptions(clientId string) *mqtt.ClientOptions {
 	return opts
 }
 
-func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string) {
+func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string, startCalibrationButtonOn *widget.Button, instructionsLabel *widget.Label) {
 	biggest := 0.0
 	smallest := 0.0
 	count := 0
@@ -92,24 +91,32 @@ func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string) {
 				fmt.Println("starting phase")
 				pin.MinValue = calculateMinAverageInput(biggest, smallest, value)
 				count++
+				startCalibrationButtonOn.Disable()
 			} else {
+				startCalibrationButtonOn.Enable()
 				fmt.Println("waiting for next phase")
+				instructionsLabel.SetText("Put your mechanism in a middle position then click 'Start Calibration' button")
 			}
 		} else if currentPhase == "middle" {
 			if count < 10 {
 				fmt.Println("middle phase")
 				pin.Direction = calculateDirectionInput(biggest, smallest, value)
 				count++
+				startCalibrationButtonOn.Disable()
 			} else {
+				instructionsLabel.SetText("Put your mechanism in a fully open position (max value) then click 'Start Calibration' button")
 				fmt.Println("waiting for next phase")
+				startCalibrationButtonOn.Enable()
 			}
 		} else if currentPhase == "end" {
 			if count < 10 {
 				fmt.Println("end phase")
 				pin.MaxValue = calculateMaxAverageInput(biggest, smallest, value)
 				count++
+				startCalibrationButtonOn.Disable()
 			} else {
 				fmt.Println("waiting for next phase")
+				startCalibrationButtonOn.Enable()
 			}
 		}
 
