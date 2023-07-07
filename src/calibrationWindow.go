@@ -87,6 +87,10 @@ func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string, star
 	count := 0
 	currentPhase := ""
 
+	pin.MinValue = 0
+	pin.MaxValue = 0
+	pin.Direction = ""
+
 	client.Subscribe(pin.Topic, 0, func(client mqtt.Client, msg mqtt.Message) {
 		value, _ := strconv.ParseFloat(string(msg.Payload()), 64)
 		if currentPhase == "start" {
@@ -99,31 +103,34 @@ func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string, star
 			} else {
 				startCalibrationButtonOn.Enable()
 				//fmt.Println("waiting for next phase")
-				instructionsLabel.SetText("Put your mechanism in a middle position then click 'Start Calibration' button")
-			}
-		} else if currentPhase == "middle" {
-			if count < 10 {
-				fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
-				fmt.Println("middle phase")
-				pin.Direction = calculateDirectionInput(biggest, smallest, value)
-				count++
-				startCalibrationButtonOn.Disable()
-			} else {
 				instructionsLabel.SetText("Put your mechanism in a fully open position (max value) then click 'Start Calibration' button")
-				//fmt.Println("waiting for next phase")
-				startCalibrationButtonOn.Enable()
+
 			}
 		} else if currentPhase == "end" {
-			if count < 10 {
+			if count < 1 {
 				fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
 				fmt.Println("end phase")
-				pin.MaxValue = calculateMaxInput(biggest, value)
+				pin.Direction = calculateDirectionInput(biggest, smallest, value)
 				count++
 				startCalibrationButtonOn.Disable()
 			} else {
 				instructionsLabel.SetText("Calibration is done, you can close this window now")
 				//fmt.Println("waiting for next phase")
 				startCalibrationButtonOn.SetText("Close")
+				startCalibrationButtonOn.Enable()
+			}
+		} else if currentPhase == "middle" {
+			if count < 10 {
+				fmt.Printf("* [%s] %s\n", msg.Topic(), string(msg.Payload()))
+				fmt.Println("middle phase")
+				pin.MaxValue = calculateMaxInput(biggest, value)
+				count++
+				startCalibrationButtonOn.Disable()
+			} else {
+
+				instructionsLabel.SetText("Put your mechanism in a middle position then click 'Start Calibration' button")
+				//fmt.Println("waiting for next phase")
+
 				startCalibrationButtonOn.Enable()
 			}
 		}
@@ -144,7 +151,7 @@ func listen(client mqtt.Client, pin *Pin, quit chan bool, next chan string, star
 
 func calculateMinInput(smallest, value float64) float64 {
 
-	if value < smallest {
+	if smallest == 0.0 || value < smallest {
 		smallest = value
 	}
 
@@ -161,6 +168,5 @@ func calculateMaxInput(biggest, value float64) float64 {
 }
 
 func calculateDirectionInput(biggest, smallest, value float64) string {
-
 	return "clockwise"
 }

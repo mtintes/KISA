@@ -48,9 +48,13 @@ func (a *CalibrationApp) makeCalibrationUI(w fyne.Window, app fyne.App) *fyne.Co
 
 	a.Direction = widget.NewLabel("")
 
-	a.Pins = container.NewBorder(container.NewGridWithColumns(3,
+	a.Pins = container.NewBorder(container.NewGridWithColumns(6,
 		widget.NewLabel("pin"),
-		widget.NewLabel("topic")),
+		widget.NewLabel("topic"),
+		widget.NewLabel("MinValue"),
+		widget.NewLabel("MaxValue"),
+		widget.NewLabel("Direction"),
+		widget.NewLabel("")),
 		nil,
 		nil,
 		nil,
@@ -62,7 +66,13 @@ func (a *CalibrationApp) makeCalibrationUI(w fyne.Window, app fyne.App) *fyne.Co
 				return 1
 			},
 			func() fyne.CanvasObject {
-				pins := container.NewGridWithColumns(3, widget.NewLabel(""), widget.NewLabel(""), widget.NewButton("calibrate", func() {}))
+				pins := container.NewGridWithColumns(6,
+					widget.NewLabel(""),
+					widget.NewLabel(""),
+					widget.NewLabel(""),
+					widget.NewLabel(""),
+					widget.NewLabel(""),
+					widget.NewButton("calibrate", func() {}))
 				return pins
 			}, func(lii widget.ListItemID, co fyne.CanvasObject) {
 				if a.current != nil {
@@ -78,7 +88,21 @@ func (a *CalibrationApp) makeCalibrationUI(w fyne.Window, app fyne.App) *fyne.Co
 					bindTopic := binding.BindString(&Pin.Topic)
 					topic.Bind(bindTopic)
 
-					button := box.Objects[2].(*widget.Button)
+					bindMinValue := binding.BindFloat(&Pin.MinValue)
+					bindMinValueToString := binding.FloatToString(bindMinValue)
+					minValue := box.Objects[2].(*widget.Label)
+					minValue.Bind(bindMinValueToString)
+
+					bindMaxValue := binding.BindFloat(&Pin.MaxValue)
+					bindMaxValueToString := binding.FloatToString(bindMaxValue)
+					maxValue := box.Objects[3].(*widget.Label)
+					maxValue.Bind(bindMaxValueToString)
+
+					direction := box.Objects[4].(*widget.Label)
+					bindDirection := binding.BindString(&Pin.Direction)
+					direction.Bind(bindDirection)
+
+					button := box.Objects[5].(*widget.Button)
 					button.OnTapped = func() {
 						calibratePinUI(Pin, app)
 					}

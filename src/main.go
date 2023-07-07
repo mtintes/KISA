@@ -14,7 +14,7 @@ type Apps struct {
 func main() {
 	a := app.New()
 	w := a.NewWindow("Controller List")
-	w.Resize(fyne.Size{700, 700})
+	w.Resize(fyne.Size{1000, 700})
 
 	data := dummyData()
 
