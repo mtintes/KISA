@@ -57,5 +57,6 @@ func getTabs(app *Apps, w fyne.Window, a fyne.App) *container.AppTabs {
 		container.NewTabItem("Controllers", app.Controllers.makeControllerUI(w)),
 		container.NewTabItem("Broker", makeBrokerUI(w)),
 		container.NewTabItem("Calibration", app.Calibrations.makeCalibrationUI(w, a)),
+		container.NewTabItem("Connection", makeConnectionUI()),
 	)
 }

@@ -13,6 +13,21 @@ const (
 	output = 1
 )
 
+type ConnectionList struct {
+	Connections []*Connection
+}
+
+type Connection struct {
+	Input  *Connection
+	Output *Connection
+}
+
+type SimpleController struct {
+	ControllerId string
+	PinNumber    int
+	Topic        string
+}
+
 type Pin struct {
 	Topic     string
 	PinNumber int
