@@ -13,6 +13,21 @@ const (
 	output = 1
 )
 
+type ConnectionList struct {
+	Connections []*Connection
+}
+
+type Connection struct {
+	Input  *Connection
+	Output *Connection
+}
+
+type SimpleController struct {
+	ControllerId string
+	PinNumber    int
+	Topic        string
+}
+
 type Pin struct {
 	Topic     string
 	PinNumber int
@@ -84,7 +99,7 @@ func (l *ControllerList) saveAs(w fyne.Window) {
 	}, w).Show()
 }
 
-func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
+func (l *ControllerList) load(w fyne.Window, apps *Apps, app fyne.App) {
 	dialog.NewFileOpen(func(u fyne.URIReadCloser, err error) {
 		l.filepath = u.URI().Path()
 		data, err := os.ReadFile(l.filepath)
@@ -96,15 +111,28 @@ func (l *ControllerList) load(w fyne.Window, controllerApp *ControllerApp) {
 			panic(err)
 		}
 
-		tabs := getTabs(controllerApp, w)
+		tabs := getTabs(apps, w, app)
 
 		w.SetContent(tabs)
-		controllerApp.refreshData()
+		apps.Controllers.refreshData()
+		apps.Calibrations.refreshData()
 	}, w).Show()
 
 }
 
 func dummyData() *ControllerList {
 	return &ControllerList{
-		Controllers: []*Controller{}}
+		Controllers: []*Controller{
+			{
+				Id:        "1",
+				Name:      "Controller 1",
+				Direction: input,
+				Pins: []*Pin{
+					{
+						Topic:     "a",
+						PinNumber: 1,
+					},
+				},
+			},
+		}}
 }
