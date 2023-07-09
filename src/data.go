@@ -18,14 +18,14 @@ type ConnectionList struct {
 }
 
 type Connection struct {
-	Input  *Connection
-	Output *Connection
+	Input  *SimpleController
+	Output *SimpleController
 }
 
 type SimpleController struct {
-	ControllerId string
-	PinNumber    int
-	Topic        string
+	Name      string
+	PinNumber int
+	Topic     string
 }
 
 type Pin struct {
@@ -56,6 +56,25 @@ func (l *ControllerList) all() []*Controller {
 	items = append(items, l.Controllers...)
 
 	return items
+}
+
+func (l *ControllerList) inputs() *ConnectionList {
+	var items []*Connection
+
+	for _, c := range l.Controllers {
+		if c.Direction == input {
+			items = append(items, &Connection{
+				Input: &SimpleController{
+					Name: c.Name,
+				},
+				Output: &SimpleController{
+					Name: "",
+				},
+			})
+		}
+	}
+
+	return &ConnectionList{Connections: items}
 }
 
 func (l *ControllerList) save(w fyne.Window) {
@@ -114,8 +133,7 @@ func (l *ControllerList) load(w fyne.Window, apps *Apps, app fyne.App) {
 		tabs := getTabs(apps, w, app)
 
 		w.SetContent(tabs)
-		apps.Controllers.refreshData()
-		apps.Calibrations.refreshData()
+		megaRefresh(apps)
 	}, w).Show()
 
 }
@@ -135,4 +153,10 @@ func dummyData() *ControllerList {
 				},
 			},
 		}}
+}
+
+func megaRefresh(apps *Apps) {
+	apps.Controllers.refreshData()
+	apps.Calibrations.refreshData()
+	apps.Connections.refreshData()
 }

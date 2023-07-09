@@ -9,6 +9,7 @@ import (
 type Apps struct {
 	Controllers  *ControllerApp
 	Calibrations *CalibrationApp
+	Connections  *ConnectionApp
 }
 
 func main() {
@@ -21,6 +22,7 @@ func main() {
 	apps := &Apps{
 		Controllers:  &ControllerApp{data: data, visible: data.all()},
 		Calibrations: &CalibrationApp{data: data, visible: data.all()},
+		Connections:  &ConnectionApp{data: data, inputs: data.inputs().Connections},
 	}
 
 	content := getTabs(apps, w, a)
@@ -52,11 +54,11 @@ func main() {
 	w.ShowAndRun()
 }
 
-func getTabs(app *Apps, w fyne.Window, a fyne.App) *container.AppTabs {
+func getTabs(apps *Apps, w fyne.Window, a fyne.App) *container.AppTabs {
 	return container.NewAppTabs(
-		container.NewTabItem("Controllers", app.Controllers.makeControllerUI(w)),
+		container.NewTabItem("Controllers", apps.Controllers.makeControllerUI(w, apps)),
 		container.NewTabItem("Broker", makeBrokerUI(w)),
-		container.NewTabItem("Calibration", app.Calibrations.makeCalibrationUI(w, a)),
-		container.NewTabItem("Connection", makeConnectionUI()),
+		container.NewTabItem("Calibration", apps.Calibrations.makeCalibrationUI(w, a)),
+		container.NewTabItem("Connection", apps.Connections.makeConnectionUI()),
 	)
 }

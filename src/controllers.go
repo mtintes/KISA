@@ -26,7 +26,7 @@ type ControllerApp struct {
 	Pins        *fyne.Container
 }
 
-func (a *ControllerApp) makeControllerUI(w fyne.Window) fyne.CanvasObject {
+func (a *ControllerApp) makeControllerUI(w fyne.Window, apps *Apps) fyne.CanvasObject {
 	a.Controllers = widget.NewList(
 		func() int {
 			return len(a.visible)
@@ -138,7 +138,7 @@ func (a *ControllerApp) makeControllerUI(w fyne.Window) fyne.CanvasObject {
 				}}
 			a.data.add(Controller)
 			a.setController(Controller)
-			a.refreshData()
+			megaRefresh(apps)
 		}),
 	)
 
